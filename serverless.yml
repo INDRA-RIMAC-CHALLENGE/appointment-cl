@@ -70,4 +70,4 @@ resources:
     SQSFromEventBridge:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: sqs_event_bridge
+        QueueName: sqs_event_bridge_cl
