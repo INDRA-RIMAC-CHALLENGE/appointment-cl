@@ -37,13 +37,17 @@
               ]
             },
             {
-              "Fn::GetAtt": [
-                "SQSFromEventBridge",
-                "Arn"
-              ]
+              "Fn::ImportValue": "rimac-appointment-SQSFromEventBridgeArn"
             },
             "*"
           ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "events:PutEvents"
+          ],
+          "Resource": "*"
         }
       ],
       "versionFunctions": true,
@@ -119,6 +123,9 @@
                         "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
                       },
                       {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      },
+                      {
                         "Effect": "Allow",
                         "Action": [
                           "sqs:ReceiveMessage",
@@ -159,7 +166,7 @@
             "Properties": {
               "Code": {
                 "S3Bucket": "serverless-framework-deployments-us-east-1-ba990dcd-bd9c",
-                "S3Key": "serverless/rimac-appointment-cl/production/1745598689262-2025-04-25T16:31:29.262Z/rimac-appointment-cl.zip"
+                "S3Key": "serverless/rimac-appointment-cl/production/1745888146078-2025-04-29T00:55:46.078Z/rimac-appointment-cl.zip"
               },
               "Handler": "dist/lambda.handler",
               "Runtime": "nodejs18.x",
@@ -187,14 +194,14 @@
               "AppointmentDashclLogGroup"
             ]
           },
-          "AppointmentDashclLambdaVersionZHRWarNuNk1NFM7DrwPl9D3fRsY7Y7XWzdgoMfxU": {
+          "AppointmentDashclLambdaVersionYoZa7AtfX95Q6GJs1ggQ7kVodHp4cu3kQUpI1VIsKrY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppointmentDashclLambdaFunction"
               },
-              "CodeSha256": "h994FaJRXlGL7WKVQyrKDVTv1vKjy+vPd2RC5SIhV+0="
+              "CodeSha256": "XLlboRpEwp/5bzT6jNyy/h+stNQdF6t6OOc5WMCNLs0="
             }
           },
           "AppointmentDashclEventSourceMappingSQSSQSCl": {
@@ -223,6 +230,42 @@
             "Type": "AWS::SQS::Queue",
             "Properties": {
               "QueueName": "sqs_cl"
+            }
+          },
+          "SQSClPolicy": {
+            "Type": "AWS::SQS::QueuePolicy",
+            "Properties": {
+              "Queues": [
+                {
+                  "Ref": "SQSCl"
+                }
+              ],
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Sid": "Allow-SNS-SendMessage",
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "sns.amazonaws.com"
+                    },
+                    "Action": "SQS:SendMessage",
+                    "Resource": {
+                      "Fn::GetAtt": [
+                        "SQSCl",
+                        "Arn"
+                      ]
+                    },
+                    "Condition": {
+                      "ArnEquals": {
+                        "aws:SourceArn": {
+                          "Fn::ImportValue": "rimac-appointment-topic-arn"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
             }
           },
           "SnsSubscriptionCl": {
@@ -259,20 +302,11 @@
               "Targets": [
                 {
                   "Arn": {
-                    "Fn::GetAtt": [
-                      "SQSFromEventBridge",
-                      "Arn"
-                    ]
+                    "Fn::ImportValue": "rimac-appointment-SQSFromEventBridgeArn"
                   },
                   "Id": "TargetSQS"
                 }
               ]
-            }
-          },
-          "SQSFromEventBridge": {
-            "Type": "AWS::SQS::Queue",
-            "Properties": {
-              "QueueName": "sqs_event_bridge_cl"
             }
           }
         },
@@ -286,7 +320,7 @@
           "AppointmentDashclLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppointmentDashclLambdaVersionZHRWarNuNk1NFM7DrwPl9D3fRsY7Y7XWzdgoMfxU"
+              "Ref": "AppointmentDashclLambdaVersionYoZa7AtfX95Q6GJs1ggQ7kVodHp4cu3kQUpI1VIsKrY"
             },
             "Export": {
               "Name": "sls-rimac-appointment-cl-production-AppointmentDashclLambdaFunctionQualifiedArn"
@@ -304,7 +338,7 @@
           {
             "sqs": {
               "arn": {
-                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][3][\"Resource\"][0]"
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IamRoleLambdaExecution\"][\"Properties\"][\"Policies\"][0][\"PolicyDocument\"][\"Statement\"][4][\"Resource\"][0]"
               }
             }
           }
@@ -315,7 +349,7 @@
         "timeout": 30,
         "runtime": "nodejs18.x",
         "vpc": {},
-        "versionLogicalId": "AppointmentDashclLambdaVersionZHRWarNuNk1NFM7DrwPl9D3fRsY7Y7XWzdgoMfxU"
+        "versionLogicalId": "AppointmentDashclLambdaVersionYoZa7AtfX95Q6GJs1ggQ7kVodHp4cu3kQUpI1VIsKrY"
       }
     },
     "resources": {
@@ -324,6 +358,42 @@
           "Type": "AWS::SQS::Queue",
           "Properties": {
             "QueueName": "sqs_cl"
+          }
+        },
+        "SQSClPolicy": {
+          "Type": "AWS::SQS::QueuePolicy",
+          "Properties": {
+            "Queues": [
+              {
+                "Ref": "SQSCl"
+              }
+            ],
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "Allow-SNS-SendMessage",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "sns.amazonaws.com"
+                  },
+                  "Action": "SQS:SendMessage",
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "SQSCl",
+                      "Arn"
+                    ]
+                  },
+                  "Condition": {
+                    "ArnEquals": {
+                      "aws:SourceArn": {
+                        "Fn::ImportValue": "rimac-appointment-topic-arn"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
           }
         },
         "SnsSubscriptionCl": {
@@ -360,20 +430,11 @@
             "Targets": [
               {
                 "Arn": {
-                  "Fn::GetAtt": [
-                    "SQSFromEventBridge",
-                    "Arn"
-                  ]
+                  "Fn::ImportValue": "rimac-appointment-SQSFromEventBridgeArn"
                 },
                 "Id": "TargetSQS"
               }
             ]
-          }
-        },
-        "SQSFromEventBridge": {
-          "Type": "AWS::SQS::Queue",
-          "Properties": {
-            "QueueName": "sqs_event_bridge_cl"
           }
         }
       },
@@ -399,7 +460,7 @@
     "artifact": "C:\\Users\\Pool\\Documents\\Dev Pool\\INDRA\\RIMAC\\appointment-cl\\.serverless\\rimac-appointment-cl.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/rimac-appointment-cl/production/1745598689262-2025-04-25T16:31:29.262Z",
+    "artifactDirectoryName": "serverless/rimac-appointment-cl/production/1745888146078-2025-04-29T00:55:46.078Z",
     "artifact": "rimac-appointment-cl.zip"
   }
 }

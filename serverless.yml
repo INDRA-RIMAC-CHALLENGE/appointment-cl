@@ -24,8 +24,12 @@ provider:
         - events:PutEvents
       Resource:
         - Fn::GetAtt: [SQSCl, Arn]
-        - Fn::GetAtt: [SQSFromEventBridge, Arn]
+        - Fn::ImportValue: rimac-appointment-SQSFromEventBridgeArn
         - '*'
+    - Effect: Allow
+      Action:
+        - events:PutEvents
+      Resource: '*'
 
 functions:
   appointment-cl:
@@ -41,6 +45,26 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: sqs_cl
+
+    SQSClPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - Ref: SQSCl
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: Allow-SNS-SendMessage
+              Effect: Allow
+              Principal:
+                Service: sns.amazonaws.com
+              Action: SQS:SendMessage
+              Resource:
+                Fn::GetAtt: [SQSCl, Arn]
+              Condition:
+                ArnEquals:
+                  aws:SourceArn:
+                    Fn::ImportValue: rimac-appointment-topic-arn
 
     SnsSubscriptionCl:
       Type: AWS::SNS::Subscription
@@ -64,10 +88,5 @@ resources:
             - 'AppointmentCompleted'
         Targets:
           - Arn:
-              Fn::GetAtt: [SQSFromEventBridge, Arn]
+              Fn::ImportValue: rimac-appointment-SQSFromEventBridgeArn
             Id: 'TargetSQS'
-
-    SQSFromEventBridge:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: sqs_event_bridge_cl
